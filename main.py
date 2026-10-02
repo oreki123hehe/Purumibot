@@ -15,20 +15,11 @@ if STRING_SESSION:
 else:
     app = Client("main", api_id=API_ID, api_hash=API_HASH)
 
-# Inisialisasi aman untuk py-tgcalls
-try:
-    from pytgcalls import PyTgCalls
-    call_py = PyTgCalls(app)
-    PYTGCALLS_AVAILABLE = True
-except Exception as e:
-    print(f"Warning: PyTgCalls tidak dapat dimuat: {e}")
-    PYTGCALLS_AVAILABLE = False
-
 @app.on_message(filters.command(["menu", "help"], prefixes=".") & filters.me)
 async def menu_command(client, message: Message):
     menu_text = (
-        "<b>✨ PURUMI UBOT (CLEAN EDITION) ✨</b>\n\n"
-        "Daftar Perintah Aktif:\n"
+        "<b>⚡ PURUMI UBOT BETA ⚡</b>\n\n"
+        "Daftar Perintah Aktif (Mode Beta):\n"
         "🏓 <code>.ping</code> — Cek status & latensi bot\n"
         "🆔 <code>.id</code> — Cek ID Telegram target (reply/username)\n"
         "📥 <code>.save</code> — Bypass & amankan media privat / terkunci\n"
@@ -37,7 +28,7 @@ async def menu_command(client, message: Message):
         "⏹️ <code>.stop</code> — Berhentikan pemutar musik VC\n"
         "👀 <code>.sangmata</code> — Cek riwayat nama (reply target)\n"
         "📋 <code>.menu</code> — Menampilkan menu ini\n\n"
-        "🤖 <i>Status: Online 24/7</i>"
+        "🧪 <i>Status: Beta Online 24/7</i>"
     )
     await message.edit(menu_text)
 
@@ -48,9 +39,9 @@ async def ping_command(client, message: Message):
     end_time = time.time()
     latency = round((end_time - start_time) * 1000, 2)
     await m.edit(
-        f"<b>Purumi UBot Pong! 🏓</b>\n"
+        f"<b>Purumi UBot Beta Pong! 🏓</b>\n"
         f"⏱️ Latensi: <code>{latency} ms</code>\n"
-        f"🟢 Status: <b>Online & Stabil (24/7)</b>"
+        f"🧪 Status: <b>Beta Testing Online (24/7)</b>"
     )
 
 @app.on_message(filters.command("id", prefixes=".") & filters.me)
@@ -88,7 +79,7 @@ async def save_restricted_media(client, message: Message):
         await message.edit("❌ Balas (reply) ke pesan foto/video grup/channel privat yang terkunci!")
         return
     
-    await message.edit("📥 Mem-bypass dan mengamankan media privat...")
+    await message.edit("📥 Mem-bypass dan amankan media privat...")
     try:
         file_path = await message.reply_to_message.download()
         if file_path:
@@ -146,9 +137,6 @@ def search_youtube(query):
 
 @app.on_message(filters.command("play", prefixes=".") & filters.me)
 async def play_voice_chat(client, message: Message):
-    if not PYTGCALLS_AVAILABLE:
-        await message.edit("❌ Fitur Voice Chat tidak aktif karena kendala modul server.")
-        return
     if len(message.command) < 2:
         await message.edit("❌ Masukkan judul lagu! Contoh: `.play dj remix`")
         return
@@ -163,17 +151,20 @@ async def play_voice_chat(client, message: Message):
         
     chat_id = message.chat.id
     try:
+        from pytgcalls import PyTgCalls
+        call_py = PyTgCalls(client)
+        await call_py.start()
         await call_py.play(chat_id, stream_url)
-        await message.edit(f"🎶 **Sedang Memutar di Voice Chat:**\n`{title}`")
+        await message.edit(f"🎶 **[BETA] Sedang Memutar di Voice Chat:**\n`{title}`")
     except Exception as e:
         await message.edit(f"❌ Gagal memutar di Voice Chat: {str(e)}")
 
 @app.on_message(filters.command("stop", prefixes=".") & filters.me)
 async def stop_voice_chat(client, message: Message):
-    if not PYTGCALLS_AVAILABLE:
-        return
     chat_id = message.chat.id
     try:
+        from pytgcalls import PyTgCalls
+        call_py = PyTgCalls(client)
         await call_py.leave_group_call(chat_id)
         await message.edit("⏹ Pemutaran Voice Chat dihentikan.")
     except Exception as e:
@@ -206,14 +197,9 @@ async def sangmata_tracker(client, message: Message):
         await message.edit(f"❌ Gagal mengecek SangMata: {str(e)}")
 
 async def main():
-    print("Menghidupkan Purumi UBot...")
-    if PYTGCALLS_AVAILABLE:
-        try:
-            await call_py.start()
-        except Exception as e:
-            print(f"Catatan VCG: {e}")
+    print("Menghidupkan Purumi UBot BETA...")
     await app.start()
-    print("purumi_ubot aktif 24/7!")
+    print("Purumi UBot BETA aktif 24/7!")
     await idle()
 
 if __name__ == "__main__":
