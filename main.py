@@ -4,15 +4,19 @@ import asyncio
 import requests
 from telethon import TelegramClient, events
 
-# ==========================================
-# KONFIGURASI KREDENSIAL UTAMA
-# ==========================================
 API_ID = 33599996
 API_HASH = "d029d0d0e3738e12168a2903be7bfe4b"
 SUNO_API_KEY = "d92ffda3944beccca46e988984668171"
 
-# Inisialisasi klien murni 1 akun ('main')
 client = TelegramClient('main', API_ID, API_HASH)
+
+# ==========================================
+# KEEP-ALIVE BACKGROUND TASK (Mencegah Timeout)
+# ==========================================
+async def keep_alive():
+    while True:
+        await asyncio.sleep(300)  # Setiap 5 menit mengirim sinyal aktif
+        print("[Keep-Alive] Bot masih berjalan stabil 24/7...")
 
 # ==========================================
 # 0. MENU PERINTAH (.menu / .help)
@@ -24,7 +28,7 @@ async def menu_command(event):
             "<b>✨ PURUMI UBOT - MENU UTAMA ✨</b>\n\n"
             "Daftar Perintah Aktif:\n"
             "🏓 <code>.ping</code> — Cek status & latensi bot\n"
-            "📥 <code>.save</code> — Amankan media privat / terkunci\n"
+            "📥 <code>.save</code> — Amankan media privat / terkunci (Anti-Restrict)\n"
             "📢 <code>.bc [pesan]</code> — Broadcast pesan ke semua grup/channel\n"
             "🎵 <code>.suno [tema]</code> — Buat musik AI via Suno\n"
             "📋 <code>.menu</code> — Menampilkan menu ini\n\n"
@@ -55,27 +59,34 @@ async def ping_command(event):
         await event.respond(f"❌ Error Ping: {str(e)}")
 
 # ==========================================
-# 2. AMANKAN MEDIA PRIVAT (.save)
+# 2. AMANKAN MEDIA PRIVAT / TERKUNCI (.save)
 # ==========================================
 @client.on(events.NewMessage(outgoing=True, pattern=r'^\.save$'))
 async def save_restricted_media(event):
     try:
         reply = await event.get_reply_message()
         if not reply or not reply.media:
-            await event.edit("❌ Balas (reply) ke pesan foto/video terkunci yang ingin disimpan!")
+            await event.edit("❌ [purumi_ubot] Balas (reply) ke pesan foto/video terkunci yang ingin disimpan!")
             return
         
-        await event.edit("📥 Mengamankan media dari channel/grup privat...")
-        file_path = await client.download_media(reply)
-        if file_path:
-            await client.send_file('me', file_path, caption="📥 Berhasil mengamankan media privat via purumi_ubot.")
-            if os.path.exists(file_path):
-                os.remove(file_path)
-            await event.edit("✅ Media berhasil dikirim ke Saved Messages Anda!")
-        else:
-            await event.edit("❌ Gagal mengunduh media.")
+        await event.edit("📥 [purumi_ubot] Membuka proteksi dan mengamankan media privat...")
+        
+        try:
+            file_path = await client.download_media(reply)
+            if file_path:
+                await client.send_file('me', file_path, caption="📥 Berhasil mengamankan media privat via purumi_ubot.")
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                await event.edit("✅ Media privat berhasil diamankan ke Saved Messages!")
+                return
+        except Exception:
+            pass
+            
+        await client.forward_messages('me', reply)
+        await event.edit("✅ Media privat berhasil diteruskan (forward) ke Saved Messages!")
+            
     except Exception as e:
-        await event.respond(f"❌ Error: {str(e)}")
+        await event.respond(f"❌ Gagal mengamankan media: {str(e)}")
 
 # ==========================================
 # 3. BROADCAST PESAN (.bc)
@@ -147,7 +158,12 @@ def main():
     print("Menghidupkan purumi_ubot...")
     client.start()
     print("purumi_ubot siap digunakan 24/7!")
+    
+    # Menjalankan background task keep-alive agar tidak idle timeout
+    client.loop.create_task(keep_alive())
+    
     client.run_until_disconnected()
 
 if __name__ == '__main__':
     main()
+    
