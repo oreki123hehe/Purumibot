@@ -4,11 +4,9 @@ import asyncio
 from pyrogram import Client, filters, idle
 from pyrogram.types import Message
 from yt_dlp import YoutubeDL
-from pytgcalls import PyTgCalls
 
 API_ID = 33599996
 API_HASH = "d029d0d0e3738e12168a2903be7bfe4b"
-
 STRING_SESSION = os.getenv("STRING_SESSION", "")
 
 if STRING_SESSION:
@@ -16,8 +14,14 @@ if STRING_SESSION:
 else:
     app = Client("main", api_id=API_ID, api_hash=API_HASH)
 
-# Inisialisasi Voice Chat diatur di luar agar bot tidak crash
-call_py = PyTgCalls(app)
+# Sistem Anti-Crash untuk inisialisasi Voice Chat
+try:
+    from pytgcalls import PyTgCalls
+    call_py = PyTgCalls(app)
+    VC_MODE = True
+except Exception as e:
+    print(f"Modul Voice Chat gagal dimuat: {e}")
+    VC_MODE = False
 
 @app.on_message(filters.command(["menu", "help"], prefixes=".") & filters.me)
 async def menu_command(client, message: Message):
@@ -25,14 +29,15 @@ async def menu_command(client, message: Message):
         "<b>⚡ PURUMI UBOT BETA ⚡</b>\n\n"
         "Daftar Perintah Aktif:\n"
         "🏓 <code>.ping</code> — Cek status & latensi bot\n"
-        "🆔 <code>.id</code> — Cek ID Telegram target (reply/username)\n"
-        "📥 <code>.save</code> — Bypass & amankan media privat / terkunci\n"
-        "📢 <code>.bc [pesan]</code> — Broadcast pesan ke semua grup\n"
-        "🎵 <code>.play [judul lagu/link]</code> — Putar musik\n"
+        "🆔 <code>.id</code> — Cek ID Telegram target\n"
+        "📥 <code>.save</code> — Bypass & amankan media privat\n"
+        "📢 <code>.bc [pesan]</code> — Broadcast ke semua grup\n"
+        "🎵 <code>.play [judul]</code> — Putar musik di VC\n"
         "⏹️ <code>.stop</code> — Berhentikan pemutar musik VC\n"
-        "👀 <code>.sangmata</code> — Cek riwayat nama (reply target)\n"
+        "👀 <code>.sangmata</code> — Cek riwayat nama target\n"
         "📋 <code>.menu</code> — Menampilkan menu ini\n\n"
-        "🧪 <i>Status: Beta Online 24/7</i>"
+        f"🧪 <i>Status Bot: Online 24/7</i>\n"
+        f"🔊 <i>Status VC: {'AKTIF ✅' if VC_MODE else 'TIDAK DIDUKUNG SERVER ❌'}</i>"
     )
     await message.edit(menu_text)
 
@@ -45,74 +50,45 @@ async def ping_command(client, message: Message):
     await m.edit(
         f"<b>Purumi UBot Beta Pong! 🏓</b>\n"
         f"⏱️ Latensi: <code>{latency} ms</code>\n"
-        f"🟢 Status: <b>Online (24/7)</b>"
+        f"🟢 Status: <b>Online & Stabil (24/7)</b>"
     )
 
 @app.on_message(filters.command("id", prefixes=".") & filters.me)
 async def get_target_id(client, message: Message):
     chat = message.chat
     target_user = None
-    
     if message.reply_to_message:
         target_user = message.reply_to_message.from_user
     elif len(message.command) > 1:
-        identifier = message.command[1]
         try:
-            target_user = await client.get_users(identifier)
+            target_user = await client.get_users(message.command[1])
         except Exception:
             pass
-            
     if target_user:
-        await message.edit(
-            f"🆔 **Informasi ID Target:**\n"
-            f"• Nama: {target_user.first_name}\n"
-            f"• ID: <code>{target_user.id}</code>\n"
-            f"• Username: @{target_user.username if target_user.username else 'Tidak ada'}"
-        )
+        await message.edit(f"🆔 **ID Target:**\n• Nama: {target_user.first_name}\n• ID: <code>{target_user.id}</code>")
     else:
-        await message.edit(
-            f"🆔 **Informasi Chat Ini:**\n"
-            f"• Judul/Nama: {chat.title if chat.title else chat.first_name}\n"
-            f"• ID Chat: <code>{chat.id}</code>\n"
-            f"• Tipe: {chat.type}"
-        )
+        await message.edit(f"🆔 **ID Chat Ini:**\n• Judul: {chat.title if chat.title else chat.first_name}\n• ID: <code>{chat.id}</code>")
 
 @app.on_message(filters.command("save", prefixes=".") & filters.me)
 async def save_restricted_media(client, message: Message):
     if not message.reply_to_message or not message.reply_to_message.media:
-        await message.edit("❌ Balas (reply) ke pesan foto/video grup/channel privat yang terkunci!")
+        await message.edit("❌ Balas ke pesan media terkunci!")
         return
-    
-    await message.edit("📥 Mem-bypass dan amankan media privat...")
+    await message.edit("📥 Mem-bypass media...")
     try:
-        file_path = await message.reply_to_message.download()
-        if file_path:
-            await client.send_document('me', file_path, caption="📥 Berhasil mengamankan media privat.")
-            if os.path.exists(file_path):
-                os.remove(file_path)
-            await message.edit("✅ Media privat berhasil dikirim ke Saved Messages!")
-        else:
-            await message.forward_chats('me', message.reply_to_message.id)
-            await message.edit("✅ Media diteruskan ke Saved Messages!")
-    except Exception as e:
-        try:
-            await client.forward_chats('me', message.reply_to_message.id)
-            await message.edit("✅ Media diteruskan ke Saved Messages!")
-        except Exception as err:
-            await message.edit(f"❌ Gagal bypass: {str(err)}")
+        await client.forward_chats('me', message.reply_to_message.id)
+        await message.edit("✅ Media diteruskan ke Saved Messages!")
+    except Exception:
+        await message.edit("❌ Gagal bypass.")
 
 @app.on_message(filters.command("bc", prefixes=".") & filters.me)
 async def broadcast_groups(client, message: Message):
     if len(message.command) < 2:
         await message.edit("❌ Format salah! Gunakan: `.bc [pesan]`")
         return
-    
     msg_text = message.text.split(None, 1)[1]
-    await message.edit("⏳ Memulai pengiriman pesan siaran...")
-    
-    success = 0
-    fail = 0
-    
+    await message.edit("⏳ Memulai siaran...")
+    success, fail = 0, 0
     async for dialog in client.get_dialogs():
         if dialog.chat.type in ["supergroup", "group", "channel"]:
             try:
@@ -121,96 +97,74 @@ async def broadcast_groups(client, message: Message):
                 await asyncio.sleep(1.5)
             except Exception:
                 fail += 1
-                
-    await message.reply(f"✅ **Broadcast Selesai!**\n- Terkirim: {success}\n- Gagal: {fail}")
+    await message.reply(f"✅ **Broadcast Selesai!**\n- Sukses: {success}\n- Gagal: {fail}")
 
 def search_music(query):
-    # Gunakan default ytsearch agar bisa mencari lagu langsung dari judulnya
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'noplaylist': True,
-        'quiet': True,
-        'default_search': 'ytsearch'
-    }
+    ydl_opts = {'format': 'bestaudio/best', 'noplaylist': True, 'quiet': True}
     with YoutubeDL(ydl_opts) as ydl:
         try:
-            info = ydl.extract_info(query, download=False)
+            info = ydl.extract_info(f"ytsearch1:{query}", download=False)
             if 'entries' in info and len(info['entries']) > 0:
                 item = info['entries'][0]
                 return item['url'], item.get('title', 'Unknown Title')
-            elif 'url' in info:
-                return info['url'], info.get('title', 'Unknown Title')
-        except Exception as e:
-            print(f"Error pencarian musik: {e}")
+        except Exception:
+            pass
     return None, None
 
 @app.on_message(filters.command("play", prefixes=".") & filters.me)
 async def play_voice_chat(client, message: Message):
-    if len(message.command) < 2:
-        await message.edit("❌ Masukkan judul lagu! Contoh: `.play dj remix`")
+    if not VC_MODE:
+        await message.edit("❌ Server GitHub Actions tidak mendukung Voice Chat. Bot tidak dapat memutar musik.")
         return
-        
+    if len(message.command) < 2:
+        await message.edit("❌ Masukkan judul lagu!")
+        return
     query = message.text.split(None, 1)[1]
-    await message.edit(f"🔍 Mencari musik: `{query}`...")
-    
+    await message.edit(f"🔍 Mencari: `{query}`...")
     stream_url, title = search_music(query)
     if not stream_url:
-        await message.edit("❌ Lagu tidak ditemukan atau terblokir server.")
+        await message.edit("❌ Lagu tidak ditemukan.")
         return
-        
-    chat_id = message.chat.id
     try:
-        await call_py.play(chat_id, stream_url)
-        await message.edit(f"🎶 **[BETA] Memutar di Voice Chat:**\n`{title}`")
+        await call_py.play(message.chat.id, stream_url)
+        await message.edit(f"🎶 **[BETA] Memutar:**\n`{title}`")
     except Exception as e:
-        await message.edit(f"❌ Gagal memutar di Voice Chat: {str(e)}")
+        await message.edit(f"❌ Gagal memutar VC: {str(e)}")
 
 @app.on_message(filters.command("stop", prefixes=".") & filters.me)
 async def stop_voice_chat(client, message: Message):
-    chat_id = message.chat.id
+    if not VC_MODE:
+        return
     try:
-        await call_py.leave_group_call(chat_id)
-        await message.edit("⏹ Pemutaran Voice Chat dihentikan.")
-    except Exception as e:
-        await message.edit(f"❌ Gagal menghentikan pemutaran: {str(e)}")
+        await call_py.leave_group_call(message.chat.id)
+        await message.edit("⏹ Pemutaran dihentikan.")
+    except Exception:
+        pass
 
 @app.on_message(filters.command("sangmata", prefixes=".") & filters.me)
 async def sangmata_tracker(client, message: Message):
     if not message.reply_to_message:
-        await message.edit("❌ Balas (reply) ke pesan target yang ingin dicek riwayat namanya!")
+        await message.edit("❌ Balas ke pesan target!")
         return
-    
     target_user = message.reply_to_message.from_user
     if not target_user:
-        await message.edit("❌ Tidak dapat mendeteksi pengguna dari pesan tersebut.")
         return
-        
     await message.edit(f"👀 Mengecek riwayat nama untuk `{target_user.first_name}`...")
-    
     try:
         await client.send_message("@SangMata_BOT", f"{target_user.id}")
         await asyncio.sleep(3)
-        
         async for msg in client.get_chat_history("@SangMata_BOT", limit=3):
-            if msg.text and target_user.first_name.lower() in msg.text.lower() or str(target_user.id) in msg.text:
-                await message.edit(f"📋 **Riwayat Nama / Sangmata:**\n\n{msg.text}")
+            if msg.text and str(target_user.id) in msg.text:
+                await message.edit(f"📋 **Sangmata:**\n\n{msg.text}")
                 return
-                
-        await message.edit(f"⚠️ SangMata merespons, silakan cek pesan masuk dari `@SangMata_BOT`.")
-    except Exception as e:
-        await message.edit(f"❌ Gagal mengecek SangMata: {str(e)}")
-
-async def main():
-    print("Mulai menghidupkan Purumi UBot BETA...")
-    await app.start()
-    print("Bot utama menyala!")
-    try:
-        await call_py.start()
-        print("Modul Voice Chat menyala!")
-    except Exception as e:
-        print(f"Warning Voice Chat: {e}")
-    await idle()
+        await message.edit("⚠️ Cek pesan masuk dari `@SangMata_BOT`.")
+    except Exception:
+        await message.edit("❌ Gagal mengecek SangMata.")
 
 if __name__ == "__main__":
-    app.run(main())
-    
+    print("Mulai menghidupkan Purumi UBot BETA...")
+    if VC_MODE:
+        call_py.run()
+    else:
+        app.run()
+        
