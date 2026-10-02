@@ -121,18 +121,24 @@ async def broadcast_groups(client, message: Message):
     await message.reply(f"✅ **Broadcast Selesai!**\n- Terkirim: {success}\n- Gagal: {fail}")
 
 def search_youtube(query):
+    search_query = query if ("youtube.com" in query or "youtu.be" in query) else f"ytsearch1:{query}"
+    
     ydl_opts = {
         'format': 'bestaudio/best',
         'noplaylist': True,
         'quiet': True,
+        'skip_download': True,
     }
     with YoutubeDL(ydl_opts) as ydl:
         try:
-            info = ydl.extract_info(f"ytsearch:{query}", download=False)
+            info = ydl.extract_info(search_query, download=False)
             if 'entries' in info and len(info['entries']) > 0:
-                return info['entries'][0]['url'], info['entries'][0].get('title', 'Unknown Title')
-        except Exception:
-            pass
+                item = info['entries'][0]
+                return item['url'], item.get('title', 'Unknown Title')
+            elif 'url' in info:
+                return info['url'], info.get('title', 'Unknown Title')
+        except Exception as e:
+            print(f"Error yt-dlp: {e}")
     return None, None
 
 @app.on_message(filters.command("play", prefixes=".") & filters.me)
@@ -201,28 +207,7 @@ async def main():
     await app.start()
     print("Purumi UBot BETA aktif 24/7!")
     await idle()
-def search_youtube(query):
-    # Membersihkan kueri pencarian
-    search_query = query if ("youtube.com" in query or "youtu.be" in query) else f"ytsearch1:{query}"
-    
-    ydl_opts = {
-        'format': 'bestaudio/best',
-        'noplaylist': True,
-        'quiet': True,
-        'skip_download': True,
-    }
-    with YoutubeDL(ydl_opts) as ydl:
-        try:
-            info = ydl.extract_info(search_query, download=False)
-            if 'entries' in info:
-                item = info['entries'][0]
-                return item['url'], item.get('title', 'Unknown Title')
-            elif 'url' in info:
-                return info['url'], info.get('title', 'Unknown Title')
-        except Exception as e:
-            print(f"Error yt-dlp: {e}")
-    return None, None
-    
+
 if __name__ == "__main__":
     app.run(main())
     
