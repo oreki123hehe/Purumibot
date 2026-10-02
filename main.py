@@ -201,7 +201,28 @@ async def main():
     await app.start()
     print("Purumi UBot BETA aktif 24/7!")
     await idle()
-
+def search_youtube(query):
+    # Membersihkan kueri pencarian
+    search_query = query if ("youtube.com" in query or "youtu.be" in query) else f"ytsearch1:{query}"
+    
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'noplaylist': True,
+        'quiet': True,
+        'skip_download': True,
+    }
+    with YoutubeDL(ydl_opts) as ydl:
+        try:
+            info = ydl.extract_info(search_query, download=False)
+            if 'entries' in info:
+                item = info['entries'][0]
+                return item['url'], item.get('title', 'Unknown Title')
+            elif 'url' in info:
+                return info['url'], info.get('title', 'Unknown Title')
+        except Exception as e:
+            print(f"Error yt-dlp: {e}")
+    return None, None
+    
 if __name__ == "__main__":
     app.run(main())
     
