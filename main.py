@@ -4,6 +4,7 @@ import asyncio
 from pyrogram import Client, filters, idle
 from pyrogram.types import Message
 from yt_dlp import YoutubeDL
+from pytgcalls import PyTgCalls
 
 API_ID = 33599996
 API_HASH = "d029d0d0e3738e12168a2903be7bfe4b"
@@ -15,16 +16,19 @@ if STRING_SESSION:
 else:
     app = Client("main", api_id=API_ID, api_hash=API_HASH)
 
+# Inisialisasi Voice Chat diatur di luar agar bot tidak crash
+call_py = PyTgCalls(app)
+
 @app.on_message(filters.command(["menu", "help"], prefixes=".") & filters.me)
 async def menu_command(client, message: Message):
     menu_text = (
-        "<b>⚡ PURUMI UBOT BETA (SOUNDCLOUD EDITION) ⚡</b>\n\n"
-        "Daftar Perintah Aktif (Mode Beta):\n"
+        "<b>⚡ PURUMI UBOT BETA ⚡</b>\n\n"
+        "Daftar Perintah Aktif:\n"
         "🏓 <code>.ping</code> — Cek status & latensi bot\n"
         "🆔 <code>.id</code> — Cek ID Telegram target (reply/username)\n"
         "📥 <code>.save</code> — Bypass & amankan media privat / terkunci\n"
         "📢 <code>.bc [pesan]</code> — Broadcast pesan ke semua grup\n"
-        "🎵 <code>.play [judul lagu]</code> — Putar musik via SoundCloud\n"
+        "🎵 <code>.play [judul lagu/link]</code> — Putar musik\n"
         "⏹️ <code>.stop</code> — Berhentikan pemutar musik VC\n"
         "👀 <code>.sangmata</code> — Cek riwayat nama (reply target)\n"
         "📋 <code>.menu</code> — Menampilkan menu ini\n\n"
@@ -41,7 +45,7 @@ async def ping_command(client, message: Message):
     await m.edit(
         f"<b>Purumi UBot Beta Pong! 🏓</b>\n"
         f"⏱️ Latensi: <code>{latency} ms</code>\n"
-        f"🧪 Status: <b>Beta Testing Online (24/7)</b>"
+        f"🟢 Status: <b>Online (24/7)</b>"
     )
 
 @app.on_message(filters.command("id", prefixes=".") & filters.me)
@@ -120,26 +124,24 @@ async def broadcast_groups(client, message: Message):
                 
     await message.reply(f"✅ **Broadcast Selesai!**\n- Terkirim: {success}\n- Gagal: {fail}")
 
-def search_soundcloud(query):
-    # Jika pengguna memasukkan link SoundCloud langsung
-    if "soundcloud.com" in query:
-        return query, "Direct SoundCloud URL"
-        
-    search_query = f"scsearch1:{query}"
+def search_music(query):
+    # Gunakan default ytsearch agar bisa mencari lagu langsung dari judulnya
     ydl_opts = {
         'format': 'bestaudio/best',
         'noplaylist': True,
         'quiet': True,
-        'skip_download': True,
+        'default_search': 'ytsearch'
     }
     with YoutubeDL(ydl_opts) as ydl:
         try:
-            info = ydl.extract_info(search_query, download=False)
+            info = ydl.extract_info(query, download=False)
             if 'entries' in info and len(info['entries']) > 0:
                 item = info['entries'][0]
                 return item['url'], item.get('title', 'Unknown Title')
+            elif 'url' in info:
+                return info['url'], info.get('title', 'Unknown Title')
         except Exception as e:
-            print(f"Error SoundCloud search: {e}")
+            print(f"Error pencarian musik: {e}")
     return None, None
 
 @app.on_message(filters.command("play", prefixes=".") & filters.me)
@@ -149,18 +151,15 @@ async def play_voice_chat(client, message: Message):
         return
         
     query = message.text.split(None, 1)[1]
-    await message.edit(f"🔍 Mencari musik di SoundCloud: `{query}`...")
+    await message.edit(f"🔍 Mencari musik: `{query}`...")
     
-    stream_url, title = search_soundcloud(query)
+    stream_url, title = search_music(query)
     if not stream_url:
-        await message.edit("❌ Lagu tidak ditemukan di SoundCloud.")
+        await message.edit("❌ Lagu tidak ditemukan atau terblokir server.")
         return
         
     chat_id = message.chat.id
     try:
-        from pytgcalls import PyTgCalls
-        call_py = PyTgCalls(client)
-        await call_py.start()
         await call_py.play(chat_id, stream_url)
         await message.edit(f"🎶 **[BETA] Memutar di Voice Chat:**\n`{title}`")
     except Exception as e:
@@ -170,8 +169,6 @@ async def play_voice_chat(client, message: Message):
 async def stop_voice_chat(client, message: Message):
     chat_id = message.chat.id
     try:
-        from pytgcalls import PyTgCalls
-        call_py = PyTgCalls(client)
         await call_py.leave_group_call(chat_id)
         await message.edit("⏹ Pemutaran Voice Chat dihentikan.")
     except Exception as e:
@@ -204,9 +201,14 @@ async def sangmata_tracker(client, message: Message):
         await message.edit(f"❌ Gagal mengecek SangMata: {str(e)}")
 
 async def main():
-    print("Menghidupkan Purumi UBot BETA (SoundCloud)...")
+    print("Mulai menghidupkan Purumi UBot BETA...")
     await app.start()
-    print("Purumi UBot BETA aktif 24/7!")
+    print("Bot utama menyala!")
+    try:
+        await call_py.start()
+        print("Modul Voice Chat menyala!")
+    except Exception as e:
+        print(f"Warning Voice Chat: {e}")
     await idle()
 
 if __name__ == "__main__":
