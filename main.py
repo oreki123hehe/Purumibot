@@ -18,13 +18,13 @@ else:
 @app.on_message(filters.command(["menu", "help"], prefixes=".") & filters.me)
 async def menu_command(client, message: Message):
     menu_text = (
-        "<b>⚡ PURUMI UBOT BETA ⚡</b>\n\n"
+        "<b>⚡ PURUMI UBOT BETA (SOUNDCLOUD EDITION) ⚡</b>\n\n"
         "Daftar Perintah Aktif (Mode Beta):\n"
         "🏓 <code>.ping</code> — Cek status & latensi bot\n"
         "🆔 <code>.id</code> — Cek ID Telegram target (reply/username)\n"
         "📥 <code>.save</code> — Bypass & amankan media privat / terkunci\n"
         "📢 <code>.bc [pesan]</code> — Broadcast pesan ke semua grup\n"
-        "🎵 <code>.play [judul/link yt]</code> — Putar musik di Voice Chat\n"
+        "🎵 <code>.play [judul lagu]</code> — Putar musik via SoundCloud\n"
         "⏹️ <code>.stop</code> — Berhentikan pemutar musik VC\n"
         "👀 <code>.sangmata</code> — Cek riwayat nama (reply target)\n"
         "📋 <code>.menu</code> — Menampilkan menu ini\n\n"
@@ -120,9 +120,12 @@ async def broadcast_groups(client, message: Message):
                 
     await message.reply(f"✅ **Broadcast Selesai!**\n- Terkirim: {success}\n- Gagal: {fail}")
 
-def search_youtube(query):
-    search_query = query if ("youtube.com" in query or "youtu.be" in query) else f"ytsearch1:{query}"
-    
+def search_soundcloud(query):
+    # Jika pengguna memasukkan link SoundCloud langsung
+    if "soundcloud.com" in query:
+        return query, "Direct SoundCloud URL"
+        
+    search_query = f"scsearch1:{query}"
     ydl_opts = {
         'format': 'bestaudio/best',
         'noplaylist': True,
@@ -135,10 +138,8 @@ def search_youtube(query):
             if 'entries' in info and len(info['entries']) > 0:
                 item = info['entries'][0]
                 return item['url'], item.get('title', 'Unknown Title')
-            elif 'url' in info:
-                return info['url'], info.get('title', 'Unknown Title')
         except Exception as e:
-            print(f"Error yt-dlp: {e}")
+            print(f"Error SoundCloud search: {e}")
     return None, None
 
 @app.on_message(filters.command("play", prefixes=".") & filters.me)
@@ -148,11 +149,11 @@ async def play_voice_chat(client, message: Message):
         return
         
     query = message.text.split(None, 1)[1]
-    await message.edit(f"🔍 Mencari lagu: `{query}`...")
+    await message.edit(f"🔍 Mencari musik di SoundCloud: `{query}`...")
     
-    stream_url, title = search_youtube(query)
+    stream_url, title = search_soundcloud(query)
     if not stream_url:
-        await message.edit("❌ Lagu tidak ditemukan di YouTube.")
+        await message.edit("❌ Lagu tidak ditemukan di SoundCloud.")
         return
         
     chat_id = message.chat.id
@@ -161,7 +162,7 @@ async def play_voice_chat(client, message: Message):
         call_py = PyTgCalls(client)
         await call_py.start()
         await call_py.play(chat_id, stream_url)
-        await message.edit(f"🎶 **[BETA] Sedang Memutar di Voice Chat:**\n`{title}`")
+        await message.edit(f"🎶 **[BETA] Memutar di Voice Chat:**\n`{title}`")
     except Exception as e:
         await message.edit(f"❌ Gagal memutar di Voice Chat: {str(e)}")
 
@@ -203,7 +204,7 @@ async def sangmata_tracker(client, message: Message):
         await message.edit(f"❌ Gagal mengecek SangMata: {str(e)}")
 
 async def main():
-    print("Menghidupkan Purumi UBot BETA...")
+    print("Menghidupkan Purumi UBot BETA (SoundCloud)...")
     await app.start()
     print("Purumi UBot BETA aktif 24/7!")
     await idle()
