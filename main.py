@@ -23,7 +23,7 @@ call_py = PyTgCalls(app)
 @app.on_message(filters.command(["menu", "help"], prefixes=".") & filters.me)
 async def menu_command(client, message: Message):
     menu_text = (
-        "<b>✨ PURUMI UBOT (ULTIMATE PYROGRAM) ✨</b>\n\n"
+        "<b>✨ PURUMI UBOT (MODERN 2026 EDITION) ✨</b>\n\n"
         "Daftar Perintah Aktif:\n"
         "🏓 <code>.ping</code> — Cek status & latensi bot\n"
         "🆔 <code>.id</code> — Cek ID Telegram target (reply/username)\n"
@@ -34,7 +34,7 @@ async def menu_command(client, message: Message):
         "👀 <code>.sangmata</code> — Cek riwayat nama (reply target)\n"
         "🎶 <code>.suno [tema]</code> — Buat musik AI via Suno\n"
         "📋 <code>.menu</code> — Menampilkan menu ini\n\n"
-        "🤖 <i>Status: Pyrogram 64-bit Online 24/7</i>"
+        "🤖 <i>Status: Pyrogram Modern Online 24/7</i>"
     )
     await message.edit(menu_text)
 
@@ -45,7 +45,7 @@ async def ping_command(client, message: Message):
     end_time = time.time()
     latency = round((end_time - start_time) * 1000, 2)
     await m.edit(
-        f"<b>Purumi UBot Pyrogram Pong! 🏓</b>\n"
+        f"<b>Purumi UBot Modern Pong! 🏓</b>\n"
         f"⏱️ Latensi: <code>{latency} ms</code>\n"
         f"🟢 Status: <b>Online & Stabil (24/7)</b>"
     )
@@ -157,7 +157,7 @@ async def play_voice_chat(client, message: Message):
         
     chat_id = message.chat.id
     try:
-        # Menggunakan metode play langsung yang kompatibel dengan versi terbaru py-tgcalls
+        # Panggilan VCG menggunakan API py-tgcalls modern (tanpa kelas wrapper lama)
         await call_py.play(chat_id, stream_url)
         await message.edit(f"🎶 **Sedang Memutar di Voice Chat:**\n`{title}`")
     except Exception as e:
@@ -230,10 +230,10 @@ async def generate_suno_music(client, message: Message):
         await message.edit(f"❌ Error Suno AI: {str(e)}")
 
 async def main():
-    print("Menghidupkan Pyrogram & PyTgCalls userbot...")
+    print("Menghidupkan Pyrogram & PyTgCalls modern...")
     await call_py.start()
     await app.start()
-    print("purumi_ubot Pyrogram aktif 24/7 dengan fitur lengkap!")
+    print("purumi_ubot aktif 24/7 dengan arsitektur terbaru!")
     await idle()
 
 if __name__ == "__main__":
