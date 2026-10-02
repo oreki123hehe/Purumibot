@@ -5,8 +5,16 @@ import requests
 from pyrogram import Client, filters, idle
 from pyrogram.types import Message
 from pytgcalls import PyTgCalls
-from pytgcalls.types import AudioPiped
 from yt_dlp import YoutubeDL
+
+# Import AudioPiped yang aman untuk semua versi py-tgcalls
+try:
+    from pytgcalls.types import AudioPiped
+except ImportError:
+    try:
+        from pytgcalls.types.input_stream import AudioPiped
+    except ImportError:
+        from pytgcalls.stream import AudioPiped
 
 API_ID = 33599996
 API_HASH = "d029d0d0e3738e12168a2903be7bfe4b"
@@ -171,7 +179,7 @@ async def stop_voice_chat(client, message: Message):
     chat_id = message.chat.id
     try:
         await call_py.leave_group_call(chat_id)
-        await message.edit("⏹️️ Pemutaran Voice Chat dihentikan.")
+        await message.edit("⏹ Pemutaran Voice Chat dihentikan.")
     except Exception as e:
         await message.edit(f"❌ Gagal menghentikan pemutaran: {str(e)}")
 
