@@ -7,15 +7,6 @@ from pyrogram.types import Message
 from pytgcalls import PyTgCalls
 from yt_dlp import YoutubeDL
 
-# Import AudioPiped yang aman untuk semua versi py-tgcalls
-try:
-    from pytgcalls.types import AudioPiped
-except ImportError:
-    try:
-        from pytgcalls.types.input_stream import AudioPiped
-    except ImportError:
-        from pytgcalls.stream import AudioPiped
-
 API_ID = 33599996
 API_HASH = "d029d0d0e3738e12168a2903be7bfe4b"
 SUNO_API_KEY = "d92ffda3944beccca46e988984668171"
@@ -166,10 +157,8 @@ async def play_voice_chat(client, message: Message):
         
     chat_id = message.chat.id
     try:
-        await call_py.join_group_call(
-            chat_id,
-            AudioPiped(stream_url),
-        )
+        # Menggunakan metode play langsung yang kompatibel dengan versi terbaru py-tgcalls
+        await call_py.play(chat_id, stream_url)
         await message.edit(f"🎶 **Sedang Memutar di Voice Chat:**\n`{title}`")
     except Exception as e:
         await message.edit(f"❌ Gagal memutar di Voice Chat: {str(e)}")
