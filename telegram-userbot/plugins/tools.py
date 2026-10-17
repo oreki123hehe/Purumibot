@@ -82,7 +82,8 @@ async def afk_cmd(_, message):
         return await message.edit(panel('AFK MODE', '🟢 **Status:** dinonaktifkan'))
     db.data['afk'] = {'since': time.time(), 'reason': reason or 'Sedang tidak aktif'}
     db.save()
-    await message.edit(panel('AFK MODE', f'🌙 **Status:** aktif\n📝 **Alasan:** {db.data[\'afk\'][\'reason\']}'))
+    reason_text = db.data['afk']['reason']
+    await message.edit(panel('AFK MODE', f'🌙 **Status:** aktif\n📝 **Alasan:** {reason_text}'))
 
 @app.on_message(filters.incoming & (filters.private | filters.mentioned) & ~filters.bot, group=1)
 async def afk_reply(_, message):
@@ -94,9 +95,10 @@ async def afk_reply(_, message):
         return
     _cooldown[message.chat.id] = now
     minutes = int((now - afk['since']) // 60)
+    reason_text = afk['reason']
     await message.reply(
         '╭━━〔 🌙 **SEDANG AFK** 〕━━╮\n'
         f'Pemilik akun sedang tidak aktif selama `{minutes}` menit.\n'
-        f'📝 **Alasan:** {afk[\'reason\']}\n'
+        f'📝 **Alasan:** {reason_text}\n'
         '╰━━━━━━━━━━━━━━━━━━╯'
     )
