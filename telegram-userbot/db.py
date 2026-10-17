@@ -4,7 +4,7 @@ import os
 
 os.makedirs("data", exist_ok=True)
 _PATH = os.path.join("data", "db.json")
-_DEFAULT = {"afk": None}
+_DEFAULT = {"promos": {}, "blacklist": [], "afk": None, "next_id": 1}
 
 
 def _load():
