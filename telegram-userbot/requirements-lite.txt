@@ -1,0 +1,4 @@
+# Instalasi tanpa fitur musik (misalnya di Termux)
+pyrogram==2.0.106
+TgCrypto
+python-dotenv
