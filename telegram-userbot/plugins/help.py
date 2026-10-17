@@ -1,22 +1,47 @@
 from core import app
 from utils import cmd
 
-HELP = '''📖 BANTUAN USERBOT
+HELP = '''╭━━〔 **PURUMI USERBOT** 〕━━╮
+│  Premium command center
+╰━━━━━━━━━━━━━━━━━━━━╯
 
-Umum: .ping .alive .help .id .afk [alasan] .afk off .join <link/@username> .leave .restart
+✦ **SYSTEM**
+`.status` / `.dashboard` — dashboard live
+`.ping` / `.alive` — koneksi & runtime
+`.help` — pusat bantuan
+`.id` — identitas chat / user
+`.restart` — mulai ulang bot
 
-Promosi grup:
- .gcast <teks> — kirim ke grup yang ada di dialog akun
- Balas pesan lalu .gcast — salin pesan ke grup
- .bcstop — hentikan broadcast
- .addbl [chat_id], .delbl [chat_id], .listbl — blacklist target
- .promo add <interval> <teks> — promo berkala di grup saat ini
- Balas pesan lalu .promo add <interval> untuk menjadwalkan salinan
- .promo list, .promo on|off|del <id|all>, .promo set <id> <interval>
+✦ **ACCOUNT TOOLS**
+`.afk [alasan]` — aktifkan mode AFK
+`.afk off` — nonaktifkan AFK
+`.join <link/@username>` — bergabung ke chat
+`.leave` — keluar dari grup saat ini
 
-Musik (voice chat; opsional): .play <judul/link> .pause .resume .skip .stop .queue .vol <1-200>
+✦ **PROMOTION STUDIO**
+`.gcast <teks>` — kirim ke grup yang sudah ada di dialog akun
+Balas pesan + `.gcast` — salin pesan ke grup
+`.bcstop` — hentikan broadcast
+`.addbl [chat_id]` — blacklist grup
+`.delbl [chat_id]` — hapus dari blacklist
+`.listbl` — tampilkan blacklist
+`.promo add <interval> <teks>` — jadwalkan promo di grup saat ini
+Balas pesan + `.promo add <interval>` — jadwalkan salinan
+`.promo list` — daftar jadwal
+`.promo on|off|del <id|all>` — kelola jadwal
+`.promo set <id> <interval>` — ubah interval
 
-Hormati aturan grup dan jangan mengirim promosi tanpa izin. Interval terlalu cepat dapat menyebabkan pembatasan akun.'''
+✦ **VOICE PLAYER** _(opsional)_
+`.play <judul/link>` — putar audio
+`.pause` · `.resume` · `.skip` · `.stop`
+`.queue` — antrean · `.vol <1-200>` — volume
+
+╭━━〔 **QUICK NOTES** 〕━━╮
+• Interval promo minimal 60 detik.
+• Promosikan hanya ke grup yang mengizinkan.
+• Jangan bagikan `SESSION_STRING`.
+╰━━━━━━━━━━━━━━━━━━━━╯
+_PURUMI • Crafted for your workflow_'''
 
 @app.on_message(cmd('help', 'menu'))
 async def help_cmd(_, message):
