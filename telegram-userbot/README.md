@@ -1,21 +1,21 @@
-# Telegram Userbot (Pyrogram)
+# Purumi Userbot — Premium Command Center
 
-Folder terpisah untuk userbot Telegram berbasis Pyrogram.
+Userbot Telegram berbasis Pyrogram dengan panel teks yang konsisten, dashboard runtime, alat akun, player voice chat opsional, dan Promotion Studio untuk grup yang mengizinkan promosi.
 
-## Fitur
-- `.ping` dan `.alive`
-- `.help`, `.id`, `.afk`, `.join`, `.leave`, `.restart`
-- Pemutar musik voice chat (opsional; memerlukan `py-tgcalls`)
+## ✦ Fitur
 
-Fitur broadcast massal dan promo berulang tidak disertakan dalam versi ini agar tidak mengotomatisasi pesan massal yang tidak diminta.
+- **System dashboard:** `.status` / `.dashboard`, `.ping`, `.alive`
+- **Account tools:** `.id`, `.afk`, `.join`, `.leave`, `.restart`
+- **Promotion Studio:** `.gcast`, `.bcstop`, blacklist target, promo terjadwal per grup
+- **Voice player opsional:** `.play`, `.pause`, `.resume`, `.skip`, `.stop`, `.queue`, `.vol`
+- **Keamanan dasar:** file rahasia dan data runtime dikecualikan dari Git
 
-## Konfigurasi
+## Setup
+
 1. Salin `.env.example` menjadi `.env`.
 2. Isi `API_ID` dan `API_HASH` dari https://my.telegram.org.
-3. Jalankan `python gen_session.py`, lalu simpan hasil `SESSION_STRING` ke `.env`.
-4. Jangan commit `.env` atau file sesi. Jangan bagikan `SESSION_STRING`.
-
-## Jalankan
+3. Jalankan `python gen_session.py`, lalu simpan hasilnya sebagai `SESSION_STRING` di `.env`.
+4. Instal dependensi dan jalankan bot:
 
 ```bash
 python -m venv .venv
@@ -24,4 +24,22 @@ pip install -r requirements.txt
 python main.py
 ```
 
-Gunakan akun cadangan dan hormati aturan Telegram. Fitur musik mungkin memerlukan lingkungan Linux/VPS dengan FFmpeg.
+Di Termux, gunakan `requirements-lite.txt` jika instalasi dependensi musik gagal.
+
+## Promotion Studio
+
+- `.gcast <teks>` — broadcast ke grup yang sudah ada di dialog akun
+- Balas pesan dengan `.gcast` — salin pesan ke grup target
+- `.bcstop` — hentikan broadcast
+- `.addbl [chat_id]`, `.delbl [chat_id]`, `.listbl` — kelola blacklist
+- `.promo add 5m <teks>` — promo berkala di grup tempat perintah dijalankan
+- Balas pesan lalu `.promo add 5m` — jadwalkan salinan pesan
+- `.promo list`, `.promo on 1`, `.promo off 1`, `.promo del 1`, `.promo set 1 10m`
+
+Interval promo minimum 60 detik. Broadcast memiliki jeda minimal 3 detik. Gunakan hanya di grup yang mengizinkan promosi; jangan mengirim pesan yang tidak diminta. Telegram dapat membatasi akun atas aktivitas berulang atau spam.
+
+## Rahasia & sesi
+
+Jangan commit atau membagikan `.env`, `SESSION_STRING`, atau file `.session`. Atur environment variables secara aman di server/hosting. Gunakan akun cadangan dan tinjau izin bot sebelum menjalankan.
+
+> UI premium di sini berupa panel teks Telegram yang konsisten; belum ada dashboard web terpisah. Kode belum diuji dengan kredensial Telegram nyata.
