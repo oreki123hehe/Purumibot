@@ -1,0 +1,9 @@
+.git
+.env
+*.session
+*.session-journal
+.venv
+__pycache__
+*.pyc
+data
+downloads
