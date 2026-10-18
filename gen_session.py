@@ -1,4 +1,12 @@
 """Generate a Pyrogram SESSION_STRING. Keep it private."""
+import asyncio
+
+# Pyrogram 2.0 may expect an event loop to exist during import on newer Python.
+try:
+    asyncio.get_event_loop()
+except RuntimeError:
+    asyncio.set_event_loop(asyncio.new_event_loop())
+
 from pyrogram import Client
 
 api_id = int(input("API_ID   : ").strip())
