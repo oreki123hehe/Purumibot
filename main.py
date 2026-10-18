@@ -19,7 +19,7 @@ def load_plugins():
             loaded += 1
             log.info('Plugin dimuat: %s', name)
         except Exception:
-       	    log.exception('Plugin %s gagal dimuat', name)
+            log.exception('Plugin %s gagal dimuat', name)
     log.info('Total plugin berhasil dimuat: %s', loaded)
 
 
